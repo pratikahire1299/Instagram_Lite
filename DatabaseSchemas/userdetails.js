@@ -5,7 +5,8 @@ const User = new mongoose.Schema({
 	User_id: {type: String, default:''},
 	Contact_Number: {type: Number, default:0},
 	Age: {type: Number, default:0},
-	Birthdate:{type: "string",format: "date"},
+	//Birthdate:{type: "string",format: "date"},
+	token: { type: String },
 	Password: {type:String}
 })
 
