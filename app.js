@@ -80,6 +80,39 @@ app.post("/register", async (req, res) => {
   });
     
     // Login
+    app.post("/login", async (req, res) => {
+
+      // Our login logic starts here
+      try {
+
+        const { User_id, Password } = req.body;
+    
+  
+        if (!(User_id && Password)) {
+          res.status(400).send("All input is required");
+        }
+
+        const user = await User.findOne({ User_id });
+    
+        if (user && (await bcrypt.compare(Password, user.Password))) {
+         
+          const token = jwt.sign( User_id , TOKEN_KEY, {
+            algorithm: "HS256",
+          })
+          console.log("token:", token)
+          user.token = token;
+    
+         
+          res.status(200).json(user);
+        }
+        res.status(400).send("Invalid Credentials");
+      } catch (err) {
+        console.log(err);
+      }
+    
+    });
+    
+    // ...
 
 
 
