@@ -47,7 +47,7 @@ router.post("/register", async (req, res) => {
   
       const { User_id, Password } = req.body;
       if (!(User_id && Password)) {
-        res.status(400).send("All input is required");
+        res.status(400).send("Please Enter Valid Inputs");
       }
       const user = await User.findOne({ User_id });
   
@@ -56,13 +56,13 @@ router.post("/register", async (req, res) => {
         const token = jwt.sign(User_id, TOKEN_KEY, {
           algorithm: "HS256",
         })
-        console.log("token:", token)
+        console.log("Logged in User's Token: ", token)
   
         user.token = token;
   
         res.status(200).json(user);
       }
-      res.status(400).send("Invalid Credentials");
+      res.status(400).send("Invalid Credentials || Wrong username or password");
     } catch (err) {
       console.log(err);
     }
