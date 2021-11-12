@@ -1,10 +1,10 @@
-const posts = require('../models/postdetails')
+const postdetails = require('../models/postdetails')
 const mongoose = require("mongoose");
 
 
 
 exports.get_all_posts = (req, res, next) => {
-	posts.find()
+	postdetails.find()
 	    .then(docs => {
 		res.status(200).json({
 		  posts_count: docs.length,
@@ -12,9 +12,7 @@ exports.get_all_posts = (req, res, next) => {
 			return {
 			  _id: doc._id,
 			  User_Id: doc.User_id,
-			  Heading: doc.Heading,
-			  Description:doc.Description,
-			  LastModifiedDate:doc.LastModifiedDate
+			  Posts:doc.Posts
 			};
 		  })
 		});
@@ -28,18 +26,17 @@ exports.get_all_posts = (req, res, next) => {
 
   exports.get_user_posts = (req, res, next) => {
 	const id = req.params.postid;
-	posts.findById(id)
-	  .select("_id User_id Heading Description LastModifiedDate")
+	postdetails.findById(id)
+	  .select("_id User_id Posts")
 	  .exec()
 	  .then(doc => {
-		console.log("From database", doc);
+
 		if (doc) {
 		  res.status(200).json({
 			_id: doc._id,
 			User_Id: doc.User_id,
-			Heading: doc.Heading,
-			Description:doc.Description,
-			LastModifiedDate:doc.LastModifiedDate
+			Posts:doc.Posts
+	
 		  });
 		} else {
 		  res
@@ -55,23 +52,20 @@ exports.get_all_posts = (req, res, next) => {
 
 
   exports.create_user_post = (req, res, next) => {
-	const post = new posts({
-	  _id: new mongoose.Types.ObjectId(),
-	  User_Id: req.body.User_Id,
-	  Heading: req.body.Heading,
-	  Description: req.body.Description,
-	  LastModifiedDate:req.body.LastModifiedDate
-	});
-	post
-	  .save()
+	const id = req.params.User_id;
+	const newpostdata={Heading:req.body.Heading,
+					   Description:req.body.Description,
+					   LastModifiedDate:req.body.LastModifiedDate};
+	
+	postdetails.update({_id:id},{$push:{Posts : newpostdata}})
+	  
 	  .then(result => {
 		console.log(result);
 		res.status(201).json({
-		  message: "Post Created successfully",
+		  message: "Post Added successfully",
 		  createdPost: {
-			User_id: result.User_Id,
-			Heading: result.Heading,
-			Description: result.Description		
+			User_id: result.User_id,
+			Posts:result.Posts	
 		  }
 		});
 	  })
@@ -83,8 +77,32 @@ exports.get_all_posts = (req, res, next) => {
 	  });
   };
  
+
+  
+  exports.Update_User_post = (req, res, next) => {
+	const id = req.params.User_id;
+	const updateOps = {};
+	for (const ops of req.body) {
+	  updateOps[ops.propName] = ops.value;
+	}
+	postdetails.update({ _id: id }, { $set: updateOps })
+	  .exec()
+	  .then(result => {
+		res.status(200).json({
+		  message: "Product updated",
+		});
+	  })
+	  .catch(err => {
+		console.log(err);
+		res.status(500).json({
+		  error: err
+		});
+	  });
+  };
+  
   exports.delete_user_post = (req, res, next) => {
-	posts.remove({ _id: req.params._id })
+//	postdetails.remove({ _id: req.params._id })
+	postdetails.deleteOne({ _id: req.params.User_id })
 	  .exec()
 	  .then(result => {
 		res.status(200).json({
@@ -98,29 +116,3 @@ exports.get_all_posts = (req, res, next) => {
 		});
 	  });
   };
-  
-  exports.products_update_product = (req, res, next) => {
-	const id = req.params.postid;
-	const updateOps = {};
-	for (const ops of req.body) {
-	  updateOps[ops.propName] = ops.value;
-	}
-	Product.update({ _id: id }, { $set: updateOps })
-	  .exec()
-	  .then(result => {
-		res.status(200).json({
-		  message: "Product updated",
-		  request: {
-			type: "GET",
-			url: "http://localhost:3000/products/" + id
-		  }
-		});
-	  })
-	  .catch(err => {
-		console.log(err);
-		res.status(500).json({
-		  error: err
-		});
-	  });
-  };
-  
