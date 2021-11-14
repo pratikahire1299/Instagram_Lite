@@ -53,12 +53,13 @@ exports.get_all_posts = (req, res, next) => {
 
   exports.create_user_post = (req, res, next) => {
 	const id = req.params.User_id;
+	const User_id=req.body.User_id;
 	const newpostdata={Heading:req.body.Heading,
 					   Description:req.body.Description,
 					   LastModifiedDate:req.body.LastModifiedDate};
-	
-	postdetails.update({_id:id},{$push:{Posts : newpostdata}})
-	  
+
+	postdetails.update({_id:id},{$push:{Posts : newpostdata},$set:{User_id :User_id}},{upsert:true}) 
+
 	  .then(result => {
 		console.log(result);
 		res.status(201).json({
@@ -81,11 +82,16 @@ exports.get_all_posts = (req, res, next) => {
   
   exports.Update_User_post = (req, res, next) => {
 	const id = req.params.User_id;
-	const updateOps = {};
-	for (const ops of req.body) {
-	  updateOps[ops.propName] = ops.value;
-	}
-	postdetails.update({ _id: id }, { $set: updateOps })
+	const date=req.params.date;
+
+	const newpostdata={Heading:req.body.Heading,
+		Description:req.body.Description,
+		LastModifiedDate:req.body.LastModifiedDate};
+	 postdetails.update(
+		 {_id: id, 'Posts.LastModifiedDate': date },
+		 { $set: {Posts : newpostdata } },
+		 {multi:true}
+	     )
 	  .exec()
 	  .then(result => {
 		res.status(200).json({
@@ -100,7 +106,7 @@ exports.get_all_posts = (req, res, next) => {
 	  });
   };
   
-  exports.delete_user_post = (req, res, next) => {
+  exports.delete_all_user_post = (req, res, next) => {
 //	postdetails.remove({ _id: req.params._id })
 	postdetails.deleteOne({ _id: req.params.User_id })
 	  .exec()
@@ -116,3 +122,27 @@ exports.get_all_posts = (req, res, next) => {
 		});
 	  });
   };
+
+  exports.delete_user_post = (req, res, next) => {
+	const id = req.params.User_id;
+	const date=req.params.date;
+	
+	 postdetails.update(
+		 {_id: id},
+		 { $pull: {Posts : { LastModifiedDate: date } } },
+		 {multi:true}
+	     )
+		  .exec()
+		  .then(result => {
+			res.status(200).json({
+			  message: "Post deleted",
+			
+			});
+		  })
+		  .catch(err => {
+			res.status(500).json({
+			  error: err
+			});
+		  });
+	  };
+ 
