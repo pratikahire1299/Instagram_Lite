@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 
 const homepage = require("./routes/homepage.js");
 const userdashboard = require("./routes/userdashboard.js");
+const userprofile= require("./routes/userprofile.js");
 const loginRegister= require("./routes/loginRegister.js");
 
 const dbconnection = require("./DbConnection.js");
@@ -23,6 +24,7 @@ app.use(Express.json());
 
 app.use('/homepage', auth, homepage);
 app.use('/userdashboard', auth, userdashboard);
+app.use('/userprofile',userprofile);
 app.use('/loginRegister',loginRegister);
 
 
