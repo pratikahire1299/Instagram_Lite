@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
-
+require('dotenv').config()
 const config = process.env;
-const TOKEN_KEY="thisistheecretkeyformyprojectcalledminiinstagramapplication";
+
 const verifyToken = (req, res, next) => {
   const token =
     req.body.token || req.query.token || req.headers["x-access-token"];
@@ -10,7 +10,7 @@ const verifyToken = (req, res, next) => {
     return res.status(403).send("A token is required for authentication  //Genarate token after successful login");
   }
   try {
-    const decoded = jwt.verify(token, TOKEN_KEY);
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_KEY);
     req.user = decoded;
   } catch (err) {
     return res.status(401).send("Invalid Token");
