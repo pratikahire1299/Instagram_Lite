@@ -1,9 +1,9 @@
 const postdetails = require('../models/postdetails')
 const mongoose = require("mongoose");
+const ObjectId = require('mongodb').ObjectId;
 
 
-
-exports.get_all_posts = (req, res, next) => {
+exports.get_all_posts_of_all_users = (req, res, next) => {
 	postdetails.find()
 	    .then(docs => {
 		res.status(200).json({
@@ -11,8 +11,11 @@ exports.get_all_posts = (req, res, next) => {
 		  All_Posts: docs.map(doc => {
 			return {
 			  _id: doc._id,
-			  User_Id: doc.User_id,
-			  Posts:doc.Posts
+			  User_id: doc.User_id,
+			  User_Name:doc.User_Name,
+			  Heading:doc.Heading,
+			  Description:doc.Description,
+			  LastModifiedDate:doc.LastModifiedDate
 			};
 		  })
 		});
@@ -25,19 +28,32 @@ exports.get_all_posts = (req, res, next) => {
   };
 
   exports.get_user_posts = (req, res, next) => {
-	const id = req.params.postid;
-	postdetails.findById(id)
-	  .select("_id User_id Posts")
+	var id = req.params.User_id;       
+	var new_id = new ObjectId(id);
+	
+	
+	postdetails.find({User_id:new_id})
+	  .select("_id User_Name Heading Description LastModifiedDate")
 	  .exec()
-	  .then(doc => {
+	  .then(docs=> {
+	if (docs) {
 
-		if (doc) {
+		//console.log(doc);
 		  res.status(200).json({
-			_id: doc._id,
-			User_Id: doc.User_id,
-			Posts:doc.Posts
+			User_Posts: docs.map(doc => {
+				return {
+				  _id: doc._id,
+				  User_id: doc.User_id,
+				  User_Name:doc.User_Name,
+				  Heading:doc.Heading,
+				  Description:doc.Description,
+				  LastModifiedDate:doc.LastModifiedDate
+				};
+			  })
+			
 	
 		  });
+		  
 		} else {
 		  res
 			.status(404)
@@ -51,22 +67,24 @@ exports.get_all_posts = (req, res, next) => {
   };
 
 
-  exports.create_user_post = (req, res, next) => {
-	const id = req.params.User_id;
-	const User_id=req.body.User_id;
-	const newpostdata={Heading:req.body.Heading,
-					   Description:req.body.Description,
-					   LastModifiedDate:req.body.LastModifiedDate};
-
-	postdetails.update({_id:id},{$push:{Posts : newpostdata},$set:{User_id :User_id}},{upsert:true}) 
-
+  exports.create_user_post =  (req, res, next) => {
+	  const post = new postdetails({
+		User_id:req.params.User_id,
+		User_Name:req.body.User_Name,
+		Heading:req.body.Heading,
+		Description:req.body.Description,
+		LastModifiedDate:req.body.LastModifiedDate
+	  });
+	 
+	  post.save()
 	  .then(result => {
 		console.log(result);
 		res.status(201).json({
 		  message: "Post Added successfully",
 		  createdPost: {
-			User_id: result.User_id,
-			Posts:result.Posts	
+			User_Name: result.User_Name,
+			Heading:result.Heading,	
+			Description:result.Description	
 		  }
 		});
 	  })
@@ -81,15 +99,15 @@ exports.get_all_posts = (req, res, next) => {
 
   
   exports.Update_User_post = (req, res, next) => {
-	const id = req.params.User_id;
-	const date=req.params.date;
+	const id = req.params.Post_id;
 
 	const newpostdata={Heading:req.body.Heading,
 		Description:req.body.Description,
 		LastModifiedDate:req.body.LastModifiedDate};
+
 	 postdetails.update(
-		 {_id: id, 'Posts.LastModifiedDate': date },
-		 { $set: {Posts : newpostdata } },
+		 {_id: id},
+		 { $set:  newpostdata  },
 		 {multi:true}
 	     )
 	  .exec()
@@ -106,14 +124,13 @@ exports.get_all_posts = (req, res, next) => {
 	  });
   };
   
-  exports.delete_all_user_post = (req, res, next) => {
+  exports.delete_user_post = (req, res, next) => {
 //	postdetails.remove({ _id: req.params._id })
-	postdetails.deleteOne({ _id: req.params.User_id })
+	postdetails.deleteOne({ _id: req.params.Post_id })
 	  .exec()
 	  .then(result => {
 		res.status(200).json({
-		  message: "Post deleted",
-		  
+		  message: "Post deleted",	  
 		});
 	  })
 	  .catch(err => {
@@ -123,19 +140,17 @@ exports.get_all_posts = (req, res, next) => {
 	  });
   };
 
-  exports.delete_user_post = (req, res, next) => {
-	const id = req.params.User_id;
-	const date=req.params.date;
+  exports.delete_all_user_post = (req, res, next) => {
 	
-	 postdetails.update(
-		 {_id: id},
-		 { $pull: {Posts : { LastModifiedDate: date } } },
-		 {multi:true}
-	     )
+	var id = req.params.User_id;       
+	var new_id = new ObjectId(id);
+	console.log(new_id)
+	 postdetails.deleteMany( {User_id: new_id} )
 		  .exec()
 		  .then(result => {
+			  console.log(result)
 			res.status(200).json({
-			  message: "Post deleted",
+			  message: "All Post deleted",
 			
 			});
 		  })

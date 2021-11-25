@@ -11,9 +11,10 @@ exports.get_all_users = (req, res, next) => {
 		  All_Posts: docs.map(doc => {
 			return {
 			  _id: doc._id,
-			  User_Id: doc.User_id,
+			  User_Name: doc.User_Name,
+			  Name:doc.Name,
 			  Contact_Number: doc.Contact_Number,
-			  Age: doc.Age
+			  Birthdate:doc.Birthdate
 			};
 		  })
 		});
@@ -28,16 +29,17 @@ exports.get_all_users = (req, res, next) => {
   exports.get_user_data = (req, res, next) => {
 	const id = req.params.User_id;
 	userdetails.findById(id)
-	  .select("_id User_id Contact_Number Age")
+	  .select("_id User_Name Contact_Number Birthdate")
 	  .exec()
 	  .then(doc => {
 
 		if (doc) {
 		  res.status(200).json({
 			_id: doc._id,
-			User_Id: doc.User_id,
-			Contact_Number:doc.Contact_Number,
-			Age: doc.Age
+			User_Name: doc.User_Name,
+			Name:doc.Name,
+			Contact_Number: doc.Contact_Number,
+			Birthdate:doc.Birthdate
 	
 		  });
 		} else {
@@ -57,18 +59,25 @@ exports.get_all_users = (req, res, next) => {
   
   exports.Update_User_data = (req, res, next) => {
 	const id = req.params.User_id;
-	const { Name, User_id, Contact_Number, Age, Password } = req.body;
+	const { Name, User_Name, Contact_Number, Birthdate, Password } = req.body;
 
 		userdetails.update(
 		 {_id: id },
-		 { $set: {Name : Name,User_id:User_id,Contact_Number:Contact_Number,Age:Age} },
+		 { $set: {Name : Name,User_Name:User_Name,Contact_Number:Contact_Number,Birthdate:Birthdate} },
 		 {multi:true}
 	     )
 	  .exec()
-	  .then(result => {
+	  .then(doc => {
+		  if(doc){
 		res.status(200).json({
 		  message: "User Details updated",
-		});
+		  	_id: doc._id,
+			User_Name: doc.User_Name,
+			Name:doc.Name,
+			Contact_Number: doc.Contact_Number,
+			Birthdate:doc.Birthdate
+		  
+		});}
 	  })
 	  .catch(err => {
 		console.log(err);
