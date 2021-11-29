@@ -1,10 +1,12 @@
 const postdetails = require('../models/postdetails')
 const mongoose = require("mongoose");
 const ObjectId = require('mongodb').ObjectId;
+var fs = require('fs');
 
+require('dotenv/config');
 
-exports.get_all_posts_of_all_users = (req, res, next) => {
-	postdetails.find()
+exports.get_all_posts_of_all_users = async (req, res, next) => {
+	await postdetails.find()
 	    .then(docs => {
 		res.status(200).json({
 		  posts_count: docs.length,
@@ -15,7 +17,8 @@ exports.get_all_posts_of_all_users = (req, res, next) => {
 			  User_Name:doc.User_Name,
 			  Heading:doc.Heading,
 			  Description:doc.Description,
-			  LastModifiedDate:doc.LastModifiedDate
+			  LastModifiedDate:doc.LastModifiedDate,
+			  ImageOfPost:doc.ImageOfPost
 			};
 		  })
 		});
@@ -27,12 +30,12 @@ exports.get_all_posts_of_all_users = (req, res, next) => {
 	  });
   };
 
-  exports.get_user_posts = (req, res, next) => {
+  exports.get_user_posts = async (req, res, next) => {
 	var id = req.params.User_id;       
 	var new_id = new ObjectId(id);
 	
 	
-	postdetails.find({User_id:new_id})
+	await postdetails.find({User_id:new_id})
 	  .select("_id User_Name Heading Description LastModifiedDate")
 	  .exec()
 	  .then(docs=> {
@@ -67,18 +70,23 @@ exports.get_all_posts_of_all_users = (req, res, next) => {
   };
 
 
-  exports.create_user_post =  (req, res, next) => {
+  exports.create_user_post =   (req, res, next) => {
+
+	//var imagdata=req.file;
+	//console.log(imagdata);
 	  const post = new postdetails({
 		User_id:req.params.User_id,
 		User_Name:req.body.User_Name,
 		Heading:req.body.Heading,
 		Description:req.body.Description,
-		LastModifiedDate:req.body.LastModifiedDate
+		LastModifiedDate:req.body.LastModifiedDate,
+		ImageOfPost:req.file.path
 	  });
 	 
+
 	  post.save()
 	  .then(result => {
-		console.log(result);
+		//console.log(result);
 		res.status(201).json({
 		  message: "Post Added successfully",
 		  createdPost: {
@@ -98,14 +106,14 @@ exports.get_all_posts_of_all_users = (req, res, next) => {
  
 
   
-  exports.Update_User_post = (req, res, next) => {
+  exports.Update_User_post = async (req, res, next) => {
 	const id = req.params.Post_id;
 
 	const newpostdata={Heading:req.body.Heading,
 		Description:req.body.Description,
 		LastModifiedDate:req.body.LastModifiedDate};
 
-	 postdetails.update(
+	 await postdetails.update(
 		 {_id: id},
 		 { $set:  newpostdata  },
 		 {multi:true}
@@ -124,9 +132,10 @@ exports.get_all_posts_of_all_users = (req, res, next) => {
 	  });
   };
   
-  exports.delete_user_post = (req, res, next) => {
+  exports.delete_user_post = async (req, res, next) => {
 //	postdetails.remove({ _id: req.params._id })
-	postdetails.deleteOne({ _id: req.params.Post_id })
+
+	await postdetails.deleteOne({ _id: req.params.Post_id })
 	  .exec()
 	  .then(result => {
 		res.status(200).json({
@@ -140,15 +149,15 @@ exports.get_all_posts_of_all_users = (req, res, next) => {
 	  });
   };
 
-  exports.delete_all_user_post = (req, res, next) => {
+  exports.delete_all_user_post = async(req, res, next) => {
 	
 	var id = req.params.User_id;       
 	var new_id = new ObjectId(id);
-	console.log(new_id)
-	 postdetails.deleteMany( {User_id: new_id} )
+	//console.log(new_id)
+	 await postdetails.deleteMany( {User_id: new_id} )
 		  .exec()
 		  .then(result => {
-			  console.log(result)
+			 // console.log(result)
 			res.status(200).json({
 			  message: "All Post deleted",
 			

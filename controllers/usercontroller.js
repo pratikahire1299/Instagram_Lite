@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 
 
 
-exports.get_all_users = (req, res, next) => {
-	userdetails.find()
+exports.get_all_users = async (req, res, next) => {
+	await userdetails.find()
 	    .then(docs => {
 		res.status(200).json({
 		  posts_count: docs.length,
@@ -26,9 +26,9 @@ exports.get_all_users = (req, res, next) => {
 	  });
   };
 
-  exports.get_user_data = (req, res, next) => {
+  exports.get_user_data = async  (req, res, next) => {
 	const id = req.params.User_id;
-	userdetails.findById(id)
+	await userdetails.findById(id)
 	  .select("_id User_Name Contact_Number Birthdate")
 	  .exec()
 	  .then(doc => {
@@ -57,11 +57,11 @@ exports.get_all_users = (req, res, next) => {
  
 
   
-  exports.Update_User_data = (req, res, next) => {
+  exports.Update_User_data = async (req, res, next) => {
 	const id = req.params.User_id;
 	const { Name, User_Name, Contact_Number, Birthdate, Password } = req.body;
 
-		userdetails.update(
+	await userdetails.update(
 		 {_id: id },
 		 { $set: {Name : Name,User_Name:User_Name,Contact_Number:Contact_Number,Birthdate:Birthdate} },
 		 {multi:true}
@@ -87,8 +87,8 @@ exports.get_all_users = (req, res, next) => {
 	  });
   };
   
-  exports.delete_user = (req, res, next) => {
-	userdetails.deleteOne({ _id: req.params.User_id })
+  exports.delete_user = async (req, res, next) => {
+	await userdetails.deleteOne({ _id: req.params.User_id })
 	  .exec()
 	  .then(result => {
 		res.status(200).json({
