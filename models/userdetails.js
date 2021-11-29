@@ -5,7 +5,8 @@ const User = new mongoose.Schema({
 	User_Name: {type: String, default:''},
 	Contact_Number: {type: Number, default:0},
 	Birthdate:{type: "string",format: "date"},
-	Password: {type:String}
+	Password: {type:String},
+	UserProfile:{type:"string",default:"None"}
 })
 
 module.exports = mongoose.model('User', User)

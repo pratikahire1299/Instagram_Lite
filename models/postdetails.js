@@ -6,8 +6,8 @@ const Postdata = new mongoose.Schema({
     User_Name: {type: String, default:''},
     Heading: {type: String, default:''},	
 	Description: {type: String, default:'None'},
-    LastModifiedDate:{type: "string",default: "None"},
-    ImageOfPost:{type:"string"}
+    LastModifiedDate:{type: Date,default: Date.now },
+    ImageOfPost:{type:"string",default:"None"}
 })
 
 module.exports = mongoose.model('Postdata', Postdata)
