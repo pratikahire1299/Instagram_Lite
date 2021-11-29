@@ -11,6 +11,9 @@ const User = require("../models/userdetails");
 exports.User_Register = async (req, res, next) => {
 	try {
         const { Name, User_Name, Contact_Number,Birthdate,Password } = req.body;
+        var UserProfile =req.file.path
+        //console.log(req.file);
+        //console.log(UserProfile)
         const oldUser = await User.findOne({ User_Name });
         if (oldUser) {
           return res.status(409).send("User Already Exist. Please Login");
@@ -20,10 +23,10 @@ exports.User_Register = async (req, res, next) => {
         const user = await User.create({
           Name,
           User_Name,
-          Contact_Number,
-          
+          Contact_Number,  
           Birthdate,
           Password: encryptedPassword,
+          UserProfile,
         });
     
         const token = jwt.sign(User_Name, process.env.ACCESS_TOKEN_KEY, {

@@ -3,10 +3,23 @@ const mongoose = require("mongoose");
 const ObjectId = require('mongodb').ObjectId;
 var fs = require('fs');
 
+// const pageNumber =2;
+// const pageSize =10;
 require('dotenv/config');
 
 exports.get_all_posts_of_all_users = async (req, res, next) => {
+
+	let {pageNumber,pageSize} = req.query;
+	if (!pageNumber){pageNumber=2;}
+	if (!pageSize){pageSize=10;}
+	//console.log(pageNumber,pageSize);
+	//const limita=parseInt(pageSize);
+	//const skip=(pageNumber-1) * pageSize)
 	await postdetails.find()
+		.skip((pageNumber-1) * pageSize)
+		.limit(pageSize)
+		.sort({LastModifiedDate:-1})
+		
 	    .then(docs => {
 		res.status(200).json({
 		  posts_count: docs.length,
@@ -33,10 +46,15 @@ exports.get_all_posts_of_all_users = async (req, res, next) => {
   exports.get_user_posts = async (req, res, next) => {
 	var id = req.params.User_id;       
 	var new_id = new ObjectId(id);
-	
+	let {pageNumber,pageSize} = req.query;
+	if (!pageNumber){pageNumber=2;}
+	if (!pageSize){pageSize=10;}
 	
 	await postdetails.find({User_id:new_id})
-	  .select("_id User_Name Heading Description LastModifiedDate")
+		.skip((pageNumber-1) * pageSize)
+		.limit(pageSize)
+		.sort({LastModifiedDate:-1})
+	  .select("_id User_Name Heading Description LastModifiedDate ImageOfPost")
 	  .exec()
 	  .then(docs=> {
 	if (docs) {
@@ -50,7 +68,8 @@ exports.get_all_posts_of_all_users = async (req, res, next) => {
 				  User_Name:doc.User_Name,
 				  Heading:doc.Heading,
 				  Description:doc.Description,
-				  LastModifiedDate:doc.LastModifiedDate
+				  LastModifiedDate:doc.LastModifiedDate,
+				  ImageOfPost:doc.ImageOfPost
 				};
 			  })
 			
@@ -72,21 +91,18 @@ exports.get_all_posts_of_all_users = async (req, res, next) => {
 
   exports.create_user_post =   (req, res, next) => {
 
-	//var imagdata=req.file;
-	//console.log(imagdata);
 	  const post = new postdetails({
 		User_id:req.params.User_id,
 		User_Name:req.body.User_Name,
 		Heading:req.body.Heading,
 		Description:req.body.Description,
-		LastModifiedDate:req.body.LastModifiedDate,
 		ImageOfPost:req.file.path
 	  });
 	 
 
 	  post.save()
 	  .then(result => {
-		//console.log(result);
+
 		res.status(201).json({
 		  message: "Post Added successfully",
 		  createdPost: {
@@ -108,10 +124,13 @@ exports.get_all_posts_of_all_users = async (req, res, next) => {
   
   exports.Update_User_post = async (req, res, next) => {
 	const id = req.params.Post_id;
-
-	const newpostdata={Heading:req.body.Heading,
+	var timeInMss = Date.now()
+	const newpostdata={
+		Heading:req.body.Heading,
 		Description:req.body.Description,
-		LastModifiedDate:req.body.LastModifiedDate};
+		LastModifiedDate:timeInMss,
+		ImageOfPost:req.file.path	
+	};
 
 	 await postdetails.update(
 		 {_id: id},
@@ -122,6 +141,12 @@ exports.get_all_posts_of_all_users = async (req, res, next) => {
 	  .then(result => {
 		res.status(200).json({
 		  message: "Product updated",
+		  UpdatedPost: {
+			LastModifiedDate: result.LastModifiedDate,
+			Heading:result.Heading,	
+			Description:result.Description,
+			ImageOfPost:result.ImageOfPost	
+		  }
 		});
 	  })
 	  .catch(err => {

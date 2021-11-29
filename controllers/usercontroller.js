@@ -1,10 +1,21 @@
 const userdetails = require('../models/userdetails')
 const mongoose = require("mongoose");
 
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+const bcrypt = require("bcrypt");
+const dbconnection = require("../DbConnection.js");
+
 
 
 exports.get_all_users = async (req, res, next) => {
+	let {pageNumber,pageSize} = req.query;
+	if (!pageNumber){pageNumber=2;}
+	if (!pageSize){pageSize=10;}
 	await userdetails.find()
+		.skip((pageNumber-1) * pageSize)
+		.limit(pageSize)
+		.sort({LastModifiedDate:-1})
 	    .then(docs => {
 		res.status(200).json({
 		  posts_count: docs.length,
@@ -14,7 +25,9 @@ exports.get_all_users = async (req, res, next) => {
 			  User_Name: doc.User_Name,
 			  Name:doc.Name,
 			  Contact_Number: doc.Contact_Number,
-			  Birthdate:doc.Birthdate
+			  Birthdate:doc.Birthdate,
+			  UserProfile:doc.UserProfile
+			  
 			};
 		  })
 		});
@@ -29,7 +42,7 @@ exports.get_all_users = async (req, res, next) => {
   exports.get_user_data = async  (req, res, next) => {
 	const id = req.params.User_id;
 	await userdetails.findById(id)
-	  .select("_id User_Name Contact_Number Birthdate")
+	  .select("_id User_Name Contact_Number Birthdate UserProfile")
 	  .exec()
 	  .then(doc => {
 
@@ -39,7 +52,8 @@ exports.get_all_users = async (req, res, next) => {
 			User_Name: doc.User_Name,
 			Name:doc.Name,
 			Contact_Number: doc.Contact_Number,
-			Birthdate:doc.Birthdate
+			Birthdate:doc.Birthdate,
+			UserProfile:doc.UserProfile
 	
 		  });
 		} else {
@@ -58,12 +72,13 @@ exports.get_all_users = async (req, res, next) => {
 
   
   exports.Update_User_data = async (req, res, next) => {
+	encryptedPassword = await bcrypt.hash(Password, 10);
 	const id = req.params.User_id;
 	const { Name, User_Name, Contact_Number, Birthdate, Password } = req.body;
-
+	var UserProfile =req.file.path
 	await userdetails.update(
 		 {_id: id },
-		 { $set: {Name : Name,User_Name:User_Name,Contact_Number:Contact_Number,Birthdate:Birthdate} },
+		 { $set: {Name : Name,User_Name:User_Name,Contact_Number:Contact_Number,Birthdate:Birthdate,UserProfile:UserProfile} },
 		 {multi:true}
 	     )
 	  .exec()
@@ -75,8 +90,9 @@ exports.get_all_users = async (req, res, next) => {
 			User_Name: doc.User_Name,
 			Name:doc.Name,
 			Contact_Number: doc.Contact_Number,
-			Birthdate:doc.Birthdate
-		  
+			Birthdate:doc.Birthdate,
+			UserProfile:doc.UserProfile,
+			Password:encryptedPassword
 		});}
 	  })
 	  .catch(err => {
