@@ -30,13 +30,13 @@ app.use('/userdashboard', auth, userdashboard);
 app.use('/userprofile',userprofile);
 app.use('/loginRegisterPage',loginRegister);
 
-app.post('/add', upload.single('productImage'), function (req, res, next) {
-  // req.file is the `avatar` file
-  // req.body will hold the text fields, if there were any
-  console.log(req.body.sample);
-  console.log(req.file)
+// app.post('/add', upload.single('productImage'), function (req, res, next) {
+//   // req.file is the `avatar` file
+//   // req.body will hold the text fields, if there were any
+//   console.log(req.body.sample);
+//   console.log(req.file)
   
-})
+// })
 
 
 app.listen(Port, () => {
